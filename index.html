@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>なんのおと？</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffccdd">
+  <style>
+    body {
+      margin: 0; padding: 20px;
+      font-family: sans-serif;
+      text-align: center;
+      background: #f9f9f9 url('19.png') no-repeat center center fixed;
+      background-size: cover;
+      background-blend-mode: lighten;
+    }
+    h1 {
+      font-size: 28px;
+      color: #ff6699;
+      margin-bottom: 10px;
+    }
+    .illustration {
+      width: 250px;
+      height: auto;
+      opacity: 0.25;
+      margin-bottom: 10px;
+    }
+    .sheet {
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-end;
+      flex-wrap: nowrap;
+      gap: 0px;
+      margin-top: 20px;
+      overflow-x: auto;
+      position: relative;
+    }
+    .note-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+    }
+    .note-container img.note {
+      width: 100%; height: auto;
+      cursor: pointer;
+      display: block;
+    }
+    .note-fx {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: auto;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    .note-fx.show {
+      opacity: 1;
+    }
+    .clef {
+      height: 150px;
+      margin: 0;
+      padding: 0;
+      display: block;
+    }
+    .next-button {
+      margin-top: 30px;
+      padding: 12px 24px;
+      font-size: 18px;
+      background: #ffccdd;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #score {
+      font-size: 20px;
+      margin-top: 10px;
+      color: #ff3366;
+    }
+    #reward {
+      width: 300px;
+      display: none;
+      margin-top: 20px;
+      animation: pop 0.5s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>なんのおと？</h1>
+  <img src="18.png" class="illustration" alt="音符イラスト">
+
+  <div>
+    <button onclick="startGame('do-fa')">🎵 かんたん：ド〜ファ</button>
+    <button onclick="startGame('do-so')">🎵 ド〜ソ</button>
+    <button onclick="startGame('do-ra')">🎵 ド〜ラ</button>
+    <button onclick="startGame('do-si')">🎵 ド〜シ</button>
+  </div>
+
+  <div id="score">スコア：0</div>
+  <img id="reward" src="reward.png" alt="ごほうび">
+
+  <div class="sheet" id="sheet"></div>
+  <button class="next-button" onclick="nextQuestion()">つぎのもんだい ▶</button>
+
+  <script>
+    const notes = {
+      "do": { sound: "sounds/do.mp3", image: "png2/do.png", imageY: "png2/do-y.png" },
+      "re": { sound: "sounds/re.mp3", image: "png2/re.png", imageY: "png2/re-y.png" },
+      "mi": { sound: "sounds/mi.mp3", image: "png2/mi.png", imageY: "png2/mi-y.png" },
+      "fa": { sound: "sounds/fa.mp3", image: "png2/fa.png", imageY: "png2/fa-y.png" },
+      "so": { sound: "sounds/so.mp3", image: "png2/so.png", imageY: "png2/so-y.png" },
+      "ra": { sound: "sounds/ra.mp3", image: "png2/ra.png", imageY: "png2/ra-y.png" },
+      "si": { sound: "sounds/si.mp3", image: "png2/si.png", imageY: "png2/si-y.png" },
+      "do-h": { sound: "sounds/do-h.mp3", image: "png2/do-h.png", imageY: "png2/do-h-y.png" }
+    };
+
+    let mode = "do-si";
+    let score = 0;
+    let currentQuestion = 0;
+
+    const modeNotes = {
+      "do-fa": ["do", "re", "mi", "fa"],
+      "do-so": ["do", "re", "mi", "fa", "so"],
+      "do-ra": ["do", "re", "mi", "fa", "so", "ra"],
+      "do-si": ["do", "re", "mi", "fa", "so", "ra", "si"]
+    };
+
+    const questionPattern = [3, 3, 3, 4, 4, 5, 5];
+    const sheet = document.getElementById("sheet");
+
+    function startGame(selectedMode) {
+      mode = selectedMode;
+      score = 0;
+      currentQuestion = 0;
+      document.getElementById("score").innerText = "スコア：0";
+      document.getElementById("reward").style.display = "none";
+      renderQuestion();
+    }
+
+    function playSound(noteKey) {
+      const audio = new Audio(notes[noteKey].sound);
+      audio.play().catch(err => console.log("Audio play failed:", err));
+    }
+
+    function showEffect(container, noteKey) {
+      const fx = container.querySelector(".note-fx");
+      if (fx) {
+        fx.classList.add("show");
+        setTimeout(() => fx.classList.remove("show"), 800);
+      }
+    }
+
+    function renderQuestion() {
+      sheet.innerHTML = "";
+      const count = questionPattern[currentQuestion];
+      const available = modeNotes[mode];
+      const melody = [];
+      for (let i = 0; i < count; i++) {
+        const rand = available[Math.floor(Math.random() * available.length)];
+        melody.push(rand);
+      }
+
+      const clefImg = document.createElement("img");
+      clefImg.src = "png2/clef.png";
+      clefImg.className = "clef";
+      sheet.appendChild(clefImg);
+
+      melody.forEach(noteKey => {
+        const container = document.createElement("div");
+        container.className = "note-container";
+
+        const img = document.createElement("img");
+        img.src = notes[noteKey].image;
+        img.className = "note";
+        img.onclick = () => {
+          playSound(noteKey);
+          showEffect(container, noteKey);
+          score++;
+          document.getElementById("score").innerText = `スコア：${score}`;
+        };
+
+        container.appendChild(img);
+
+        if (notes[noteKey].imageY) {
+          const fx = document.createElement("img");
+          fx.src = notes[noteKey].imageY;
+          fx.className = "note-fx";
+          container.appendChild(fx);
+        }
+
+        sheet.appendChild(container);
+      });
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion >= questionPattern.length) {
+        document.getElementById("reward").style.display = "block";
+        return;
+      }
+      renderQuestion();
+    }
+
+    renderQuestion();
+  </script>
+</body>
+</html>

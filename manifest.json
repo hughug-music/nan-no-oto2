@@ -1,0 +1,15 @@
+{
+  "name": "なんのおと？",
+  "short_name": "なんのおと",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffccdd",
+  "theme_color": "#ffccdd",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
