@@ -6,6 +6,12 @@
   <title>なんのおと？</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffccdd">
+  <!-- 画面の向きを横向きに固定 -->
+  <meta name="screen-orientation" content="landscape">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-orientation" content="landscape">
   <style>
     body {
       margin: 0; padding: 20px;
@@ -14,6 +20,82 @@
       background: #f9f9f9 url('19.png') no-repeat center center fixed;
       background-size: cover;
       background-blend-mode: lighten;
+      /* 画面回転を促すスタイル */
+      min-height: 100vh;
+    }
+    
+    /* 縦向きの時に回転を促すメッセージ */
+    .rotate-message {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 204, 221, 0.95);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    .rotate-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      animation: rotate 2s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .rotate-text {
+      font-size: 24px;
+      color: #ff6699;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.5;
+    }
+    
+    /* 縦向きの時にメッセージを表示 */
+    @media (orientation: portrait) and (max-width: 1024px) {
+      .rotate-message {
+        display: flex;
+      }
+      
+      .main-content {
+        display: none;
+      }
+    }
+    
+    /* 横向きの時の最適化 */
+    @media (orientation: landscape) {
+      .rotate-message {
+        display: none !important;
+      }
+      
+      .main-content {
+        display: block;
+      }
+      
+      body {
+        padding: 10px;
+      }
+      
+      h1 {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+      
+      .illustration {
+        width: 150px;
+        margin-bottom: 5px;
+      }
+      
+      .sheet {
+        margin-top: 10px;
+      }
     }
     h1 {
       font-size: 28px;
@@ -196,26 +278,38 @@
   </style>
 </head>
 <body>
-  <h1>なんのおと？</h1>
-  <img src="18.png" class="illustration" alt="音符イラスト">
-
-  <div>
-    <button onclick="startGame('do-fa')">🎵 かんたん：ド〜ファ</button>
-    <button onclick="startGame('do-so')">🎵 ド〜ソ</button>
-    <button onclick="startGame('do-ra')">🎵 ド〜ラ</button>
-    <button onclick="startGame('do-si')">🎵 ド〜シ</button>
+  <!-- 縦向きの時の回転促進メッセージ -->
+  <div class="rotate-message">
+    <div class="rotate-icon">📱</div>
+    <div class="rotate-text">
+      画面を横向きにして<br>
+      お楽しみください！
+    </div>
   </div>
 
-  <div id="score">スコア：0</div>
-  
-  <!-- ご褒美マークをオーバーレイ表示に変更 -->
-  <div id="reward-overlay">
-    <button class="close-reward" onclick="closeReward()">×</button>
-    <img id="reward" src="reward.png" alt="ごほうび">
-  </div>
+  <!-- メインコンテンツ -->
+  <div class="main-content">
+    <h1>なんのおと？</h1>
+    <img src="18.png" class="illustration" alt="音符イラスト">
 
-  <div class="sheet" id="sheet"></div>
-  <button class="next-button" onclick="nextQuestion()">つぎのもんだい ▶</button>
+    <div>
+      <button onclick="startGame('do-fa')">🎵 かんたん：ド〜ファ</button>
+      <button onclick="startGame('do-so')">🎵 ド〜ソ</button>
+      <button onclick="startGame('do-ra')">🎵 ド〜ラ</button>
+      <button onclick="startGame('do-si')">🎵 ド〜シ</button>
+    </div>
+
+    <div id="score">スコア：0</div>
+    
+    <!-- ご褒美マークをオーバーレイ表示に変更 -->
+    <div id="reward-overlay">
+      <button class="close-reward" onclick="closeReward()">×</button>
+      <img id="reward" src="reward.png" alt="ごほうび">
+    </div>
+
+    <div class="sheet" id="sheet"></div>
+    <button class="next-button" onclick="nextQuestion()">つぎのもんだい ▶</button>
+  </div>
 
   <script>
     const notes = {
