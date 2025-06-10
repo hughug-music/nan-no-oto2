@@ -63,6 +63,45 @@
       padding: 0;
       display: block;
     }
+    
+    /* スマホ対応：音符が多い時は全体を小さく */
+    @media (max-width: 768px) {
+      .sheet.many-notes {
+        transform: scale(0.8);
+        transform-origin: center center;
+        justify-content: center;
+        margin: 20px auto;
+        width: fit-content;
+      }
+      
+      .sheet.many-notes .note-container {
+        width: 120px;
+        height: 120px;
+      }
+      
+      .sheet.many-notes .clef {
+        height: 120px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .sheet.many-notes {
+        transform: scale(0.65);
+        transform-origin: center center;
+        justify-content: center;
+        margin: 20px auto;
+        width: fit-content;
+      }
+      
+      .sheet.many-notes .note-container {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .sheet.many-notes .clef {
+        height: 100px;
+      }
+    }
     .next-button {
       margin-top: 30px;
       padding: 12px 24px;
@@ -77,15 +116,82 @@
       margin-top: 10px;
       color: #ff3366;
     }
-    #reward {
-      width: 300px;
+    
+    /* ご褒美マークの修正 */
+    #reward-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.9);
       display: none;
-      margin-top: 20px;
-      animation: pop 0.5s ease;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
     }
-    @keyframes pop {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+    
+    #reward {
+      width: 400px;
+      max-width: 80vw;
+      height: auto;
+      animation: rewardAppear 1.2s ease-out;
+      filter: drop-shadow(0 10px 20px rgba(255, 102, 153, 0.3));
+    }
+    
+    @keyframes rewardAppear {
+      0% { 
+        transform: scale(0.3) rotate(-10deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1) rotate(5deg);
+        opacity: 0.8;
+      }
+      70% {
+        transform: scale(0.95) rotate(-2deg);
+        opacity: 1;
+      }
+      100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+    
+    /* ふわふわアニメーション */
+    #reward {
+      animation: rewardAppear 1.2s ease-out, float 3s ease-in-out infinite 1.2s;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) scale(1);
+      }
+      50% {
+        transform: translateY(-10px) scale(1.02);
+      }
+    }
+    
+    /* 閉じるボタン */
+    .close-reward {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #ff6699;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .close-reward:hover {
+      background: #ff3366;
+      transform: scale(1.1);
     }
   </style>
 </head>
@@ -101,7 +207,12 @@
   </div>
 
   <div id="score">スコア：0</div>
-  <img id="reward" src="reward.png" alt="ごほうび">
+  
+  <!-- ご褒美マークをオーバーレイ表示に変更 -->
+  <div id="reward-overlay">
+    <button class="close-reward" onclick="closeReward()">×</button>
+    <img id="reward" src="reward.png" alt="ごほうび">
+  </div>
 
   <div class="sheet" id="sheet"></div>
   <button class="next-button" onclick="nextQuestion()">つぎのもんだい ▶</button>
@@ -137,7 +248,7 @@
       score = 0;
       currentQuestion = 0;
       document.getElementById("score").innerText = "スコア：0";
-      document.getElementById("reward").style.display = "none";
+      document.getElementById("reward-overlay").style.display = "none";
       renderQuestion();
     }
 
@@ -162,6 +273,13 @@
       for (let i = 0; i < count; i++) {
         const rand = available[Math.floor(Math.random() * available.length)];
         melody.push(rand);
+      }
+
+      // 音符が4個以上の場合はスマホ対応クラスを追加
+      if (count >= 4) {
+        sheet.classList.add("many-notes");
+      } else {
+        sheet.classList.remove("many-notes");
       }
 
       const clefImg = document.createElement("img");
@@ -199,10 +317,16 @@
     function nextQuestion() {
       currentQuestion++;
       if (currentQuestion >= questionPattern.length) {
-        document.getElementById("reward").style.display = "block";
+        // ご褒美マークを中央に大きく表示
+        document.getElementById("reward-overlay").style.display = "flex";
         return;
       }
       renderQuestion();
+    }
+
+    // ご褒美マークを閉じる関数
+    function closeReward() {
+      document.getElementById("reward-overlay").style.display = "none";
     }
 
     renderQuestion();
